@@ -1,12 +1,20 @@
-// Access Control Passcode
+const firebaseConfig = {
+  apiKey: "AIzaSyDbXz93KDKzVAKPA4A9KOGfvArR95UIiUA",
+  authDomain: "chore-tracker-f6e11.firebaseapp.com",
+  projectId: "chore-tracker-f6e11",
+  storageBucket: "chore-tracker-f6e11.firebasestorage.app",
+  messagingSenderId: "251373271126",
+  appId: "1:251373271126:web:790b7f74678970112fe3f7",
+  measurementId: "G-B9J80QYC9S"
+};
+// 2. Initialize Firebase & Firestore Database
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 3. Rest of your app code below...
 const APP_PIN = "1234";
+let chores = [];
 
-// Load records from LocalStorage
-let chores = JSON.parse(localStorage.getItem('chores')) || [];
-
-// --- ACCESS CONTROL FUNCTIONS ---
-function checkPin() {
-  const pinInput = document.getElementById('pin-input');
   const errorElement = document.getElementById('pin-error');
   const enteredPin = pinInput ? pinInput.value : '';
 
