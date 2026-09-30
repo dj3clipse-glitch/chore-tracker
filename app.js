@@ -1,5 +1,5 @@
 // Access Control Configuration
-const APP_PIN = "wasd"; // Set your desired 4-digit passcode here
+const APP_PIN = "1234"; // Set your desired 4-digit passcode here
 
 let chores = JSON.parse(localStorage.getItem('chores')) || [];
 
