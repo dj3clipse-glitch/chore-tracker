@@ -1,22 +1,22 @@
-// Access Control Passcode
+// Access Control Passcode (Default: 1234)
 const APP_PIN = "1234";
 
-// Load initial chores from LocalStorage
 let chores = JSON.parse(localStorage.getItem('chores')) || [];
 
 // --- ACCESS CONTROL FUNCTIONS ---
 function checkPin() {
-  const enteredPin = document.getElementById('pin-input').value;
+  const pinInput = document.getElementById('pin-input');
   const errorElement = document.getElementById('pin-error');
+  const enteredPin = pinInput ? pinInput.value : '';
 
   if (enteredPin === APP_PIN) {
     document.getElementById('pin-screen').classList.add('hidden');
     document.getElementById('app-container').classList.remove('hidden');
-    document.getElementById('pin-input').value = '';
-    errorElement.innerText = '';
+    if (pinInput) pinInput.value = '';
+    if (errorElement) errorElement.innerText = '';
     filterAndSortChores();
   } else {
-    errorElement.innerText = 'Incorrect PIN. Try again.';
+    if (errorElement) errorElement.innerText = 'Incorrect PIN. Try again.';
   }
 }
 
@@ -31,11 +31,10 @@ function addChore() {
   const text = input ? input.value.trim() : '';
 
   if (text !== '') {
-    chores.unshift({
-      id: Date.now(),
-      text: text,
-      completed: false,
-      timestamp: new Date().toLocaleString()
+    chores.push({ 
+      id: Date.now(), 
+      text: text, 
+      completed: false 
     });
     saveAndRender();
     input.value = '';
@@ -63,19 +62,18 @@ function filterAndSortChores() {
   const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
   const sortOption = sortSelect ? sortSelect.value : 'name-asc';
 
-  // Search Filter
+  // Filter chores matching search text
   let filtered = chores.filter(chore => 
-    (chore.text && chore.text.toLowerCase().includes(searchQuery)) ||
-    (chore.person && chore.person.toLowerCase().includes(searchQuery))
+    chore.text && chore.text.toLowerCase().includes(searchQuery)
   );
 
-  // Sorting
+  // Apply sorting option
   if (sortOption === 'name-asc') {
-    filtered.sort((a, b) => (a.text || a.chore || '').localeCompare(b.text || b.chore || ''));
+    filtered.sort((a, b) => a.text.localeCompare(b.text));
   } else if (sortOption === 'name-desc') {
-    filtered.sort((a, b) => (b.text || b.chore || '').localeCompare(a.text || a.chore || ''));
+    filtered.sort((a, b) => b.text.localeCompare(a.text));
   } else if (sortOption === 'status') {
-    filtered.sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
+    filtered.sort((a, b) => a.completed - b.completed);
   }
 
   renderList(filtered);
@@ -86,54 +84,21 @@ function saveAndRender() {
   filterAndSortChores();
 }
 
-// --- RENDER LIST TO UI ---
+// --- RENDER LIST TO DOM ---
 function renderList(choreArray) {
   const listElement = document.getElementById('chore-list');
   if (!listElement) return;
-  
+
   listElement.innerHTML = '';
 
   choreArray.forEach(chore => {
     const li = document.createElement('li');
-    const displayText = chore.person ? `[${chore.person}] ${chore.chore || chore.text}` : (chore.text || chore.chore);
-    
     li.innerHTML = `
       <span class="${chore.completed ? 'completed' : ''}" onclick="toggleChore(${chore.id})">
-        ${chore.completed ? '✅' : '⬜'} ${displayText}
+        ${chore.completed ? '✅' : '⬜'} ${chore.text}
       </span>
       <button onclick="deleteChore(${chore.id})">✕</button>
     `;
     listElement.appendChild(li);
   });
 }
-
-// --- FORM EVENT LISTENER (Optional Table / Form support) ---
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('chore-form');
-  
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      const personInput = document.getElementById('person');
-      const choreInput = document.getElementById('chore');
-
-      const person = personInput ? personInput.value.trim() : '';
-      const choreText = choreInput ? choreInput.value.trim() : '';
-
-      if (choreText !== '') {
-        const choreData = {
-          id: Date.now(),
-          person: person,
-          text: choreText,
-          completed: false,
-          timestamp: new Date().toLocaleString()
-        };
-
-        chores.unshift(choreData);
-        saveAndRender();
-        form.reset();
-      }
-    });
-  }
-});
