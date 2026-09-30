@@ -15,6 +15,9 @@ const db = firebase.firestore();
 const APP_PIN = "1234";
 let chores = [];
 
+// --- ACCESS CONTROL FUNCTIONS ---
+function checkPin() {
+  const pinInput = document.getElementById('pin-input');
   const errorElement = document.getElementById('pin-error');
   const enteredPin = pinInput ? pinInput.value : '';
 
@@ -23,7 +26,7 @@ let chores = [];
     document.getElementById('app-container').classList.remove('hidden');
     if (pinInput) pinInput.value = '';
     if (errorElement) errorElement.innerText = '';
-    filterAndSortChores();
+    listenToCloudUpdates();
   } else {
     if (errorElement) errorElement.innerText = 'Incorrect PIN. Try again.';
   }
@@ -32,6 +35,21 @@ let chores = [];
 function lockApp() {
   document.getElementById('app-container').classList.add('hidden');
   document.getElementById('pin-screen').classList.remove('hidden');
+}
+
+// --- REAL-TIME DATABASE LISTENER ---
+// Automatically updates EVERYONE'S screen instantly whenever anyone adds or deletes a chore
+function listenToCloudUpdates() {
+  db.collection("chores").onSnapshot((snapshot) => {
+    chores = snapshot.docs.map(doc => ({
+      id: doc.id,
+      person: doc.data().person,
+      chore: doc.data().chore,
+      timestamp: doc.data().timestamp,
+      createdAt: doc.data().createdAt || 0
+    }));
+    filterAndSortChores();
+  });
 }
 
 // --- FORM SUBMISSION HANDLING ---
@@ -49,25 +67,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const chore = choreInput ? choreInput.value.trim() : '';
 
       if (person !== '' && chore !== '') {
-        const choreData = {
-          id: Date.now(),
+        // Save directly to Cloud Firestore
+        db.collection("chores").add({
           person: person,
           chore: chore,
-          timestamp: new Date().toLocaleString()
-        };
+          timestamp: new Date().toLocaleString(),
+          createdAt: Date.now()
+        });
 
-        chores.unshift(choreData);
-        saveAndRender();
         form.reset();
       }
     });
   }
 });
 
-// --- DELETE CHORE LOG ---
+// --- DELETE CHORE LOG FROM CLOUD ---
 function deleteChore(id) {
-  chores = chores.filter(item => item.id !== id);
-  saveAndRender();
+  db.collection("chores").doc(id).delete();
 }
 
 // --- SEARCH & SORT LOGIC ---
@@ -78,17 +94,15 @@ function filterAndSortChores() {
   const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
   const sortOption = sortSelect ? sortSelect.value : 'latest';
 
-  // Filter based on search input (checks person and chore text)
   let filtered = chores.filter(item => 
     (item.person && item.person.toLowerCase().includes(searchQuery)) ||
     (item.chore && item.chore.toLowerCase().includes(searchQuery))
   );
 
-  // Sorting logic
   if (sortOption === 'latest') {
-    filtered.sort((a, b) => b.id - a.id);
+    filtered.sort((a, b) => b.createdAt - a.createdAt);
   } else if (sortOption === 'oldest') {
-    filtered.sort((a, b) => a.id - b.id);
+    filtered.sort((a, b) => a.createdAt - b.createdAt);
   } else if (sortOption === 'person-asc') {
     filtered.sort((a, b) => a.person.localeCompare(b.person));
   } else if (sortOption === 'chore-asc') {
@@ -96,11 +110,6 @@ function filterAndSortChores() {
   }
 
   renderTable(filtered);
-}
-
-function saveAndRender() {
-  localStorage.setItem('chores', JSON.stringify(chores));
-  filterAndSortChores();
 }
 
 // --- RENDER TABLE BODY ---
@@ -121,7 +130,7 @@ function renderTable(choreArray) {
       <td><strong>${item.person}</strong></td>
       <td>${item.chore}</td>
       <td><small>${item.timestamp}</small></td>
-      <td><button class="delete-btn" onclick="deleteChore(${item.id})">✕</button></td>
+      <td><button class="delete-btn" onclick="deleteChore('${item.id}')">✕</button></td>
     `;
     tableBody.appendChild(tr);
   });
