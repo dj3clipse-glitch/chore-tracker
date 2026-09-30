@@ -1,104 +1,56 @@
-// Access Control Passcode (Default: 1234)
-const APP_PIN = "1234";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Household Chore Tracker</title>
 
-let chores = JSON.parse(localStorage.getItem('chores')) || [];
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chore Tracker">
+  <link rel="apple-touch-icon" href="icon.png">
 
-// --- ACCESS CONTROL FUNCTIONS ---
-function checkPin() {
-  const pinInput = document.getElementById('pin-input');
-  const errorElement = document.getElementById('pin-error');
-  const enteredPin = pinInput ? pinInput.value : '';
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-  if (enteredPin === APP_PIN) {
-    document.getElementById('pin-screen').classList.add('hidden');
-    document.getElementById('app-container').classList.remove('hidden');
-    if (pinInput) pinInput.value = '';
-    if (errorElement) errorElement.innerText = '';
-    filterAndSortChores();
-  } else {
-    if (errorElement) errorElement.innerText = 'Incorrect PIN. Try again.';
-  }
-}
+  <!-- Lock Screen -->
+  <div id="pin-screen" class="pin-container">
+    <h2>Enter Passcode</h2>
+    <input type="password" id="pin-input" placeholder="4-digit PIN" maxlength="4">
+    <button onclick="checkPin()">Unlock</button>
+    <p id="pin-error" class="error-msg"></p>
+  </div>
 
-function lockApp() {
-  document.getElementById('app-container').classList.add('hidden');
-  document.getElementById('pin-screen').classList.remove('hidden');
-}
+  <!-- App Main View -->
+  <div id="app-container" class="app-container hidden">
+    <header>
+      <h1>Chore Tracker</h1>
+      <button onclick="lockApp()" class="lock-btn">🔒 Lock</button>
+    </header>
 
-// --- CHORE MANAGEMENT FUNCTIONS ---
-function addChore() {
-  const input = document.getElementById('chore-input');
-  const text = input ? input.value.trim() : '';
+    <!-- Search & Sort Controls -->
+    <div class="controls-section">
+      <input type="text" id="search-input" placeholder="Search chores..." oninput="filterAndSortChores()">
+      
+      <select id="sort-select" onchange="filterAndSortChores()">
+        <option value="name-asc">Sort: A-Z</option>
+        <option value="name-desc">Sort: Z-A</option>
+        <option value="status">Sort: Incomplete First</option>
+      </select>
+    </div>
 
-  if (text !== '') {
-    chores.push({ 
-      id: Date.now(), 
-      text: text, 
-      completed: false 
-    });
-    saveAndRender();
-    input.value = '';
-  }
-}
+    <!-- Input Section -->
+    <div class="input-section">
+      <input type="text" id="chore-input" placeholder="Add a new chore...">
+      <button onclick="addChore()">Add</button>
+    </div>
 
-function toggleChore(id) {
-  chores = chores.map(chore => {
-    if (chore.id === id) chore.completed = !chore.completed;
-    return chore;
-  });
-  saveAndRender();
-}
+    <!-- List Output -->
+    <ul id="chore-list"></ul>
+  </div>
 
-function deleteChore(id) {
-  chores = chores.filter(chore => chore.id !== id);
-  saveAndRender();
-}
-
-// --- SEARCH & SORT LOGIC ---
-function filterAndSortChores() {
-  const searchInput = document.getElementById('search-input');
-  const sortSelect = document.getElementById('sort-select');
-
-  const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
-  const sortOption = sortSelect ? sortSelect.value : 'name-asc';
-
-  // Filter chores matching search text
-  let filtered = chores.filter(chore => 
-    chore.text && chore.text.toLowerCase().includes(searchQuery)
-  );
-
-  // Apply sorting option
-  if (sortOption === 'name-asc') {
-    filtered.sort((a, b) => a.text.localeCompare(b.text));
-  } else if (sortOption === 'name-desc') {
-    filtered.sort((a, b) => b.text.localeCompare(a.text));
-  } else if (sortOption === 'status') {
-    filtered.sort((a, b) => a.completed - b.completed);
-  }
-
-  renderList(filtered);
-}
-
-function saveAndRender() {
-  localStorage.setItem('chores', JSON.stringify(chores));
-  filterAndSortChores();
-}
-
-// --- RENDER LIST TO DOM ---
-function renderList(choreArray) {
-  const listElement = document.getElementById('chore-list');
-  if (!listElement) return;
-
-  listElement.innerHTML = '';
-
-  choreArray.forEach(chore => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span class="${chore.completed ? 'completed' : ''}" onclick="toggleChore(${chore.id})">
-        ${chore.completed ? '✅' : '⬜'} ${chore.text}
-      </span>
-      <button onclick="deleteChore(${chore.id})">✕</button>
-    `;
-    listElement.appendChild(li);
-  });
-}
+  <script src="app.js"></script>
+</body>
+</html>
