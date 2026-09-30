@@ -54,6 +54,12 @@ button:hover {
   background-color: #0056b3;
 }
 
+.lock-btn {
+  background-color: #666;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
 ul {
   list-style: none;
   padding: 0;
@@ -66,6 +72,7 @@ li {
   justify-content: space-between;
   padding: 10px;
   border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
 
 .completed {
