@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Household Chore Tracker</title>
 
-  <!-- iOS PWA Meta Tags -->
+  <!-- iOS Mobile Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Chore Tracker">
@@ -23,25 +23,25 @@
     <p id="pin-error" class="error-msg"></p>
   </div>
 
-  <!-- Main App Container (Hidden until PIN is entered) -->
+  <!-- Main App Container -->
   <div id="app-container" class="app-container hidden">
     <header>
       <h1>Household Chore Tracker</h1>
       <button onclick="lockApp()" class="lock-btn">🔒 Lock</button>
     </header>
 
-    <!-- Controls Section: Search & Sort -->
+    <!-- Search & Sort Bar -->
     <div class="controls-section">
       <input type="text" id="search-input" placeholder="Search chores..." oninput="filterAndSortChores()">
       
       <select id="sort-select" onchange="filterAndSortChores()">
-        <option value="name-asc">Sort: Name (A-Z)</option>
-        <option value="name-desc">Sort: Name (Z-A)</option>
+        <option value="name-asc">Sort: A-Z</option>
+        <option value="name-desc">Sort: Z-A</option>
         <option value="status">Sort: Incomplete First</option>
       </select>
     </div>
 
-    <!-- Input Section -->
+    <!-- Chore Input Section -->
     <div class="input-section">
       <input type="text" id="chore-input" placeholder="Add a new chore...">
       <button onclick="addChore()">Add</button>
@@ -53,4 +53,4 @@
 
   <script src="app.js"></script>
 </body>
-</html>
+</html
