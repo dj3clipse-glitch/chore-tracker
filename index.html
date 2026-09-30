@@ -15,40 +15,72 @@
 </head>
 <body>
 
-  <!-- Lock Screen -->
-  <div id="pin-screen" class="pin-container">
+  <!-- Access Control Passcode Screen -->
+  <div id="pin-screen" class="card pin-card">
     <h2>Enter Passcode</h2>
     <input type="password" id="pin-input" placeholder="4-digit PIN" maxlength="4">
-    <button onclick="checkPin()">Unlock</button>
+    <button type="button" class="btn-green" onclick="checkPin()">Unlock</button>
     <p id="pin-error" class="error-msg"></p>
   </div>
 
-  <!-- App Main View -->
-  <div id="app-container" class="app-container hidden">
-    <header>
-      <h1>Chore Tracker</h1>
-      <button onclick="lockApp()" class="lock-btn">🔒 Lock</button>
-    </header>
+  <!-- Main Application Area -->
+  <div id="app-container" class="dashboard-wrapper hidden">
+    
+    <!-- Title Sidebar / Header -->
+    <div class="brand-side">
+      <h1>Household<br>Chore<br>Tracker</h1>
+      <button onclick="lockApp()" class="lock-btn">🔒 Lock App</button>
+    </div>
 
-    <!-- Search & Sort Controls -->
-    <div class="controls-section">
-      <input type="text" id="search-input" placeholder="Search chores..." oninput="filterAndSortChores()">
-      
+    <!-- Search & Sort Controls Bar -->
+    <div class="top-controls card">
+      <input type="text" id="search-input" placeholder="Search logs..." oninput="filterAndSortChores()">
       <select id="sort-select" onchange="filterAndSortChores()">
-        <option value="name-asc">Sort: A-Z</option>
-        <option value="name-desc">Sort: Z-A</option>
-        <option value="status">Sort: Incomplete First</option>
+        <option value="latest">Sort: Newest First</option>
+        <option value="oldest">Sort: Oldest First</option>
+        <option value="person-asc">Sort: Person (A-Z)</option>
+        <option value="chore-asc">Sort: Chore (A-Z)</option>
       </select>
     </div>
 
-    <!-- Input Section -->
-    <div class="input-section">
-      <input type="text" id="chore-input" placeholder="Add a new chore...">
-      <button onclick="addChore()">Add</button>
+    <div class="content-grid">
+      <!-- Left Card: Form -->
+      <div class="card form-card">
+        <h2>Log a Completed Chore</h2>
+        
+        <form id="chore-form">
+          <label for="person">Who completed it?</label>
+          <input type="text" id="person" placeholder="E.g., Alex, Mom, Sam" required>
+
+          <label for="chore">What chore was done?</label>
+          <input type="text" id="chore" placeholder="E.g., Washed Dishes, Took out trash" required>
+
+          <button type="submit" class="btn-green">Log Chore</button>
+        </form>
+      </div>
+
+      <!-- Right Card: History Table -->
+      <div class="card table-card">
+        <h2>Chore Log History</h2>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Chore</th>
+                <th>Date & Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="chore-table-body">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <!-- List Output -->
-    <ul id="chore-list"></ul>
   </div>
 
   <script src="app.js"></script>
