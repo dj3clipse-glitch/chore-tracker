@@ -1,9 +1,10 @@
-// Access Control Passcode 
+// Access Control Passcode
 const APP_PIN = "1234";
 
-let chores = JSON.parse(localStorage.getItem('chores')) || []; 
+// Load initial chores from LocalStorage
+let chores = JSON.parse(localStorage.getItem('chores')) || [];
 
-// Access Control Functions
+// --- ACCESS CONTROL FUNCTIONS ---
 function checkPin() {
   const enteredPin = document.getElementById('pin-input').value;
   const errorElement = document.getElementById('pin-error');
@@ -24,19 +25,23 @@ function lockApp() {
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
-// Add New Chore
+// --- CHORE MANAGEMENT FUNCTIONS ---
 function addChore() {
   const input = document.getElementById('chore-input');
-  const text = input.value.trim();
+  const text = input ? input.value.trim() : '';
 
   if (text !== '') {
-    chores.push({ id: Date.now(), text: text, completed: false });
+    chores.unshift({
+      id: Date.now(),
+      text: text,
+      completed: false,
+      timestamp: new Date().toLocaleString()
+    });
     saveAndRender();
     input.value = '';
   }
 }
 
-// Toggle Complete / Incomplete State
 function toggleChore(id) {
   chores = chores.map(chore => {
     if (chore.id === id) chore.completed = !chore.completed;
@@ -45,48 +50,56 @@ function toggleChore(id) {
   saveAndRender();
 }
 
-// Delete Chore
 function deleteChore(id) {
   chores = chores.filter(chore => chore.id !== id);
   saveAndRender();
 }
 
-// Search and Sort Logic
+// --- SEARCH & SORT LOGIC ---
 function filterAndSortChores() {
-  const searchQuery = document.getElementById('search-input').value.toLowerCase();
-  const sortOption = document.getElementById('sort-select').value;
+  const searchInput = document.getElementById('search-input');
+  const sortSelect = document.getElementById('sort-select');
+
+  const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+  const sortOption = sortSelect ? sortSelect.value : 'name-asc';
 
   // Search Filter
-  let filtered = chores.filter(chore => chore.text.toLowerCase().includes(searchQuery));
+  let filtered = chores.filter(chore => 
+    (chore.text && chore.text.toLowerCase().includes(searchQuery)) ||
+    (chore.person && chore.person.toLowerCase().includes(searchQuery))
+  );
 
   // Sorting
   if (sortOption === 'name-asc') {
-    filtered.sort((a, b) => a.text.localeCompare(b.text));
+    filtered.sort((a, b) => (a.text || a.chore || '').localeCompare(b.text || b.chore || ''));
   } else if (sortOption === 'name-desc') {
-    filtered.sort((a, b) => b.text.localeCompare(a.text));
+    filtered.sort((a, b) => (b.text || b.chore || '').localeCompare(a.text || a.chore || ''));
   } else if (sortOption === 'status') {
-    filtered.sort((a, b) => a.completed - b.completed);
+    filtered.sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
   }
 
   renderList(filtered);
 }
 
-// Save to LocalStorage
 function saveAndRender() {
   localStorage.setItem('chores', JSON.stringify(chores));
   filterAndSortChores();
 }
 
-// Render Items to UI
+// --- RENDER LIST TO UI ---
 function renderList(choreArray) {
   const listElement = document.getElementById('chore-list');
+  if (!listElement) return;
+  
   listElement.innerHTML = '';
 
   choreArray.forEach(chore => {
     const li = document.createElement('li');
+    const displayText = chore.person ? `[${chore.person}] ${chore.chore || chore.text}` : (chore.text || chore.chore);
+    
     li.innerHTML = `
       <span class="${chore.completed ? 'completed' : ''}" onclick="toggleChore(${chore.id})">
-        ${chore.completed ? '✅' : '⬜'} ${chore.text}
+        ${chore.completed ? '✅' : '⬜'} ${displayText}
       </span>
       <button onclick="deleteChore(${chore.id})">✕</button>
     `;
@@ -94,43 +107,33 @@ function renderList(choreArray) {
   });
 }
 
-const form = document.getElementById('chore-form');
-const choreList = document.getElementById('chore-list');
+// --- FORM EVENT LISTENER (Optional Table / Form support) ---
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('chore-form');
+  
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-document.addEventListener('DOMContentLoaded', loadChores);
+      const personInput = document.getElementById('person');
+      const choreInput = document.getElementById('chore');
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
+      const person = personInput ? personInput.value.trim() : '';
+      const choreText = choreInput ? choreInput.value.trim() : '';
 
-  const person = document.getElementById('person').value;
-  const chore = document.getElementById('chore').value;
-  const timestamp = new Date().toLocaleString();
+      if (choreText !== '') {
+        const choreData = {
+          id: Date.now(),
+          person: person,
+          text: choreText,
+          completed: false,
+          timestamp: new Date().toLocaleString()
+        };
 
-  const choreData = { person, chore, timestamp };
-
-  saveChore(choreData);
-  addChoreToTable(choreData);
-
-  form.reset();
+        chores.unshift(choreData);
+        saveAndRender();
+        form.reset();
+      }
+    });
+  }
 });
-
-function saveChore(choreData) {
-  let chores = JSON.parse(localStorage.getItem('chores')) || [];
-  chores.unshift(choreData);
-  localStorage.setItem('chores', JSON.stringify(chores));
-}
-
-function loadChores() {
-  let chores = JSON.parse(localStorage.getItem('chores')) || [];
-  chores.forEach(choreData => addChoreToTable(choreData));
-}
-
-function addChoreToTable(choreData) {
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td><strong>${choreData.person}</strong></td>
-    <td>${choreData.chore}</td>
-    <td><small>${choreData.timestamp}</small></td>
-  `;
-  choreList.prepend(row);
-}
