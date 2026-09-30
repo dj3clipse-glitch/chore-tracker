@@ -1,7 +1,7 @@
 // Access Control Passcode 
-const APP_PIN = "123d";
+const APP_PIN = "1234";
 
-let chores = JSON.parse(localStorage.getItem('chores')) || [];
+let chores = JSON.parse(localStorage.getItem('chores')) || []; 
 
 // Access Control Functions
 function checkPin() {
