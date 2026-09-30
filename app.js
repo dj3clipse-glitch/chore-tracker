@@ -1,5 +1,5 @@
-// Access Control Configuration
-const APP_PIN = "1234"; // Set your desired 4-digit passcode here
+// Access Control Passcode 
+const APP_PIN = "123d";
 
 let chores = JSON.parse(localStorage.getItem('chores')) || [];
 
@@ -24,7 +24,7 @@ function lockApp() {
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
-// Add Chore Function
+// Add New Chore
 function addChore() {
   const input = document.getElementById('chore-input');
   const text = input.value.trim();
@@ -36,7 +36,7 @@ function addChore() {
   }
 }
 
-// Toggle Completed State
+// Toggle Complete / Incomplete State
 function toggleChore(id) {
   chores = chores.map(chore => {
     if (chore.id === id) chore.completed = !chore.completed;
@@ -45,7 +45,7 @@ function toggleChore(id) {
   saveAndRender();
 }
 
-// Delete Chore Function
+// Delete Chore
 function deleteChore(id) {
   chores = chores.filter(chore => chore.id !== id);
   saveAndRender();
@@ -56,10 +56,10 @@ function filterAndSortChores() {
   const searchQuery = document.getElementById('search-input').value.toLowerCase();
   const sortOption = document.getElementById('sort-select').value;
 
-  // Filter based on search input
+  // Search Filter
   let filtered = chores.filter(chore => chore.text.toLowerCase().includes(searchQuery));
 
-  // Sort based on selection
+  // Sorting
   if (sortOption === 'name-asc') {
     filtered.sort((a, b) => a.text.localeCompare(b.text));
   } else if (sortOption === 'name-desc') {
@@ -71,12 +71,13 @@ function filterAndSortChores() {
   renderList(filtered);
 }
 
+// Save to LocalStorage
 function saveAndRender() {
   localStorage.setItem('chores', JSON.stringify(chores));
   filterAndSortChores();
 }
 
-// Render List to DOM
+// Render Items to UI
 function renderList(choreArray) {
   const listElement = document.getElementById('chore-list');
   listElement.innerHTML = '';
