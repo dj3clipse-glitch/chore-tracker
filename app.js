@@ -1,6 +1,7 @@
-// Access Control Passcode (Default: 1234)
+// Access Control Passcode
 const APP_PIN = "1234";
 
+// Load records from LocalStorage
 let chores = JSON.parse(localStorage.getItem('chores')) || [];
 
 // --- ACCESS CONTROL FUNCTIONS ---
@@ -25,32 +26,39 @@ function lockApp() {
   document.getElementById('pin-screen').classList.remove('hidden');
 }
 
-// --- CHORE MANAGEMENT FUNCTIONS ---
-function addChore() {
-  const input = document.getElementById('chore-input');
-  const text = input ? input.value.trim() : '';
+// --- FORM SUBMISSION HANDLING ---
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('chore-form');
+  
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-  if (text !== '') {
-    chores.push({ 
-      id: Date.now(), 
-      text: text, 
-      completed: false 
+      const personInput = document.getElementById('person');
+      const choreInput = document.getElementById('chore');
+
+      const person = personInput ? personInput.value.trim() : '';
+      const chore = choreInput ? choreInput.value.trim() : '';
+
+      if (person !== '' && chore !== '') {
+        const choreData = {
+          id: Date.now(),
+          person: person,
+          chore: chore,
+          timestamp: new Date().toLocaleString()
+        };
+
+        chores.unshift(choreData);
+        saveAndRender();
+        form.reset();
+      }
     });
-    saveAndRender();
-    input.value = '';
   }
-}
+});
 
-function toggleChore(id) {
-  chores = chores.map(chore => {
-    if (chore.id === id) chore.completed = !chore.completed;
-    return chore;
-  });
-  saveAndRender();
-}
-
+// --- DELETE CHORE LOG ---
 function deleteChore(id) {
-  chores = chores.filter(chore => chore.id !== id);
+  chores = chores.filter(item => item.id !== id);
   saveAndRender();
 }
 
@@ -60,23 +68,26 @@ function filterAndSortChores() {
   const sortSelect = document.getElementById('sort-select');
 
   const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
-  const sortOption = sortSelect ? sortSelect.value : 'name-asc';
+  const sortOption = sortSelect ? sortSelect.value : 'latest';
 
-  // Filter chores matching search text
-  let filtered = chores.filter(chore => 
-    chore.text && chore.text.toLowerCase().includes(searchQuery)
+  // Filter based on search input (checks person and chore text)
+  let filtered = chores.filter(item => 
+    (item.person && item.person.toLowerCase().includes(searchQuery)) ||
+    (item.chore && item.chore.toLowerCase().includes(searchQuery))
   );
 
-  // Apply sorting option
-  if (sortOption === 'name-asc') {
-    filtered.sort((a, b) => a.text.localeCompare(b.text));
-  } else if (sortOption === 'name-desc') {
-    filtered.sort((a, b) => b.text.localeCompare(a.text));
-  } else if (sortOption === 'status') {
-    filtered.sort((a, b) => a.completed - b.completed);
+  // Sorting logic
+  if (sortOption === 'latest') {
+    filtered.sort((a, b) => b.id - a.id);
+  } else if (sortOption === 'oldest') {
+    filtered.sort((a, b) => a.id - b.id);
+  } else if (sortOption === 'person-asc') {
+    filtered.sort((a, b) => a.person.localeCompare(b.person));
+  } else if (sortOption === 'chore-asc') {
+    filtered.sort((a, b) => a.chore.localeCompare(b.chore));
   }
 
-  renderList(filtered);
+  renderTable(filtered);
 }
 
 function saveAndRender() {
@@ -84,21 +95,26 @@ function saveAndRender() {
   filterAndSortChores();
 }
 
-// --- RENDER LIST TO DOM ---
-function renderList(choreArray) {
-  const listElement = document.getElementById('chore-list');
-  if (!listElement) return;
+// --- RENDER TABLE BODY ---
+function renderTable(choreArray) {
+  const tableBody = document.getElementById('chore-table-body');
+  if (!tableBody) return;
 
-  listElement.innerHTML = '';
+  tableBody.innerHTML = '';
 
-  choreArray.forEach(chore => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span class="${chore.completed ? 'completed' : ''}" onclick="toggleChore(${chore.id})">
-        ${chore.completed ? '✅' : '⬜'} ${chore.text}
-      </span>
-      <button onclick="deleteChore(${chore.id})">✕</button>
+  if (choreArray.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a0aec0;">No chores logged yet</td></tr>`;
+    return;
+  }
+
+  choreArray.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${item.person}</strong></td>
+      <td>${item.chore}</td>
+      <td><small>${item.timestamp}</small></td>
+      <td><button class="delete-btn" onclick="deleteChore(${item.id})">✕</button></td>
     `;
-    listElement.appendChild(li);
+    tableBody.appendChild(tr);
   });
 }
